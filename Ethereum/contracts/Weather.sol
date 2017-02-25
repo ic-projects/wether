@@ -3,6 +3,7 @@ pragma solidity ^0.4.4;
 contract Weather {
 
 	address public owner;
+	uint public minAmount;
 	mapping (address => WeatherAccount) accounts;
 
 	struct WeatherAccount {
@@ -12,7 +13,7 @@ contract Weather {
 	struct Insurance {
 		int latitude;
 		int longitude;
-		int totalPayout;
+		uint totalPayout;
 		uint date;
 		bool claimed;
 		bool exists;
@@ -21,6 +22,7 @@ contract Weather {
 
 	function Weather() {
 		owner = msg.sender;
+		minAmount = 0;
 	}
 
 	function getInsuranceLength() constant returns (uint activeIndexes) {
@@ -35,7 +37,7 @@ contract Weather {
 		return accounts[msg.sender].insurances[index].longitude;
 	}
 
-	function getInsurancesTotalPayout(uint index) constant returns (int) {
+	function getInsurancesTotalPayout(uint index) constant returns (uint) {
 		return accounts[msg.sender].insurances[index].totalPayout;
 	}
 
@@ -51,12 +53,29 @@ contract Weather {
 		return accounts[msg.sender].insurances[index].exists;
 	}
 
-	function getPayoutQuote(int lat, int long, uint date, uint amount) constant returns (int payout) {
+	function getPayoutQuote(int lat, int long, uint date, uint amount)
+	constant returns (uint payout) {
 
 	}
 
-	function createInsurance(int lat, int long, uint date) payable returns (bool success){
+	function getWeatherResult(int lat, int long, uint date)
+	internal constant returns (bool didItRain) {
 
+	}
+
+	function createInsurance(int lat, int long, uint date)
+	payable returns (bool success) {
+		if(msg.value < minAmount) {
+			throw;
+		}
+		if(now + 5 days >= date) {
+			throw;
+		}
+
+
+		var payout = getPayoutQuote(lat, long, date, msg.value);
+		var i = Insurance(lat, long, payout, date, false, true);
+		accounts[msg.sender].insurances.push(i);
 	}
 
 	function payout(uint index) {
@@ -70,16 +89,21 @@ contract Weather {
 			throw;
 		}
 
+		accounts[msg.sender].insurances[index].claimed = true;
+
 		//Check it rained/did not rain
-		bool didItRain = false;
+		bool didItRain = getWeatherResult(
+			accounts[msg.sender].insurances[index].latitude,
+			accounts[msg.sender].insurances[index].longitude,
+			accounts[msg.sender].insurances[index].date);
 
 		if (didItRain) {
-			//payout them out
-
-			//set
+			if(!msg.sender.send(accounts[msg.sender].insurances[index].totalPayout)) {
+				accounts[msg.sender].insurances[index].claimed  = false;
+			}
 		}
-
-
 	}
+
+
 
 }
