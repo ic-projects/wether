@@ -4,6 +4,7 @@ contract Weather {
 
 	address public owner;
 	uint public minAmount;
+	uint public dayInsuranceBuffer;
 	mapping (address => WeatherAccount) accounts;
 
 	struct WeatherAccount {
@@ -23,30 +24,20 @@ contract Weather {
 	function Weather() {
 		owner = msg.sender;
 		minAmount = 0;
+		dayInsuranceBuffer = 1;
+	}
+
+	function getInsurance(uint index) constant returns (int, int , uint, uint, bool, bool) {
+		return (accounts[msg.sender].insurances[index].latitude,
+			accounts[msg.sender].insurances[index].longitude,
+			accounts[msg.sender].insurances[index].totalPayout,
+			accounts[msg.sender].insurances[index].date,
+			accounts[msg.sender].insurances[index].claimed,
+			accounts[msg.sender].insurances[index].exists);
 	}
 
 	function getInsuranceLength() constant returns (uint activeIndexes) {
 		return accounts[msg.sender].insurances.length;
-	}
-
-	function getInsurancesLat(uint index) constant returns (int) {
-		return accounts[msg.sender].insurances[index].latitude;
-	}
-
-	function getInsurancesLong(uint index) constant returns (int) {
-		return accounts[msg.sender].insurances[index].longitude;
-	}
-
-	function getInsurancesTotalPayout(uint index) constant returns (uint) {
-		return accounts[msg.sender].insurances[index].totalPayout;
-	}
-
-	function getInsurancesDate(uint index) constant returns (uint) {
-		return accounts[msg.sender].insurances[index].date;
-	}
-
-	function getInsurancesClaimed(uint index) constant returns (bool) {
-		return accounts[msg.sender].insurances[index].claimed;
 	}
 
 	function getInsurancesExists(uint index) constant returns (bool) {
@@ -57,6 +48,10 @@ contract Weather {
 	constant returns (uint payout) {
 
 		//TODO
+		
+
+
+
 		return amount * 2;
 	}
 
@@ -73,7 +68,7 @@ contract Weather {
 		if(msg.value < minAmount) {
 			throw;
 		}
-		if(now + 5 days >= date) {
+		if(now + (dayInsuranceBuffer * 1 days) >= date) {
 			throw;
 		}
 
@@ -128,6 +123,10 @@ contract Weather {
 
 	function setMinAmount(uint newMinAmount) onlyOwner {
 		minAmount = newMinAmount;
+	}
+
+	function setDayInsuranceBuffer(uint newDayInsuranceBuffer) onlyOwner {
+		dayInsuranceBuffer = newDayInsuranceBuffer;
 	}
 
 	function destroy() onlyOwner {
