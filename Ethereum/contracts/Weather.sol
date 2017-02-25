@@ -48,7 +48,7 @@ contract Weather {
 	constant returns (uint payout) {
 
 		//TODO
-		
+
 
 
 
@@ -63,8 +63,7 @@ contract Weather {
 		return true;
 	}
 
-	function createInsurance(int lat, int long, uint date)
-	payable returns (bool success) {
+	function createInsurance(int lat, int long, uint date) payable {
 		if(msg.value < minAmount) {
 			throw;
 		}
