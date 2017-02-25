@@ -1,0 +1,23 @@
+<head>
+  <title>WEther</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+</head>
+<body>
+  <section class="container">
+    You have <b id="insurance-number"></b> insurances.
+  </section>
+  {{> debug}}
+</body>
+
+<template name="debug">
+  {{#each insurances}}
+    <div>
+      Insurance:
+      lat={{latitude}}
+      long={{longitude}}
+      pay={{totalPayout}}
+      date={{date}}
+      claimed={{claimed}}
+    </div>
+  {{/each}}
+</template>
