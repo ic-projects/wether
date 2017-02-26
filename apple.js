@@ -17,6 +17,33 @@
       height: 100%;
       width: 100%;
     }
+    #forced{
+      overflow-x: scroll;
+	  overflow-y: hidden;
+      overflow-x:scroll;
+    }
+    .weather{
+      display: inline-block;
+      width: 500px;
+    }
+    .weather_block {
+      display: inline-block;
+      float: left;
+      width: 100px;
+    }
+    .clearfix {
+      clear: both;
+    }
+
+    .weather_date{
+      font-weight:bold;
+    }
+    .weather_temp{
+    }
+    .weather_icon{
+    }
+    .weather_text{
+    }
   </style>
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.2/esri/css/main.css">
@@ -149,8 +176,7 @@
 
           function triggerPopup(name, lat, lon) {
             view.popup.title = name;
-            getWeather(lat, lon);
-            //view.popup.content = getContent(lat, lon);
+            setContent(lat, lon);
           }
 
           function triggerErrorPopup() {
@@ -166,29 +192,27 @@
                       + lat + ', ' + lon + ')">Insure</button>';
           }
 
-          function getWeather(lat, lon) {
+          function setContent(lat, lon) {
 
+            // get the Weather forecast from Yahoo API
             var url = 'https://query.yahooapis.com/v1/public/yql';
-            var yql = 'select title, units.temperature, item.forecast from weather.forecast where woeid in (select woeid from geo.places where text="({'+ lat + '}, {'+ lon + '})a") and u = "C" limit 5 | sort(field="item.forecast.date", descending="false");';
-
-            var iconUrl = 'https://s.yimg.com/zz/combo?a/i/us/we/52/';
+            var yql = 'select title, units.temperature, item.forecast from weather.forecast where woeid in (select woeid from geo.places where text="('+ lat + ', '+ lon + ')") and u = "C" limit 5 | sort(field="item.forecast.date", descending="false");';
 
             $.ajax({url: url, data: {format: 'json', q: yql}, method: 'GET', dataType: 'json',
                 success: function(data) {
-                    var forecast = "";
+                    var forecast = '<div id="forced"><div id="weather" class="weather">';
                         if (data.query.count > 0) {
                         jQuery.each(data.query.results.channel, function(idx, result) {
                             console.log(result);
                             var f = result.item.forecast;
                             var u = result.units.temperature;
 
-                            forecast += '<div id="weather" class="weather"><div class="weather_date">' + f.date + '</div> <div class="weather_temp"><div class="weather_temp_min">' + f.low + u +'</div><div class="weather_temp_max">' + f.high + u +'</div></div><img class="weather_icon" src="'+ getUrl(f.code) +'"alt="Img not found"><div class="weather_text">' + f.text +'</div></div>';
-
+                            forecast += '<div class="weather_block"><div class="weather_date">' + f.date + '</div><div class="weather_temp">'  +f.low + '&#8451 -- ' + f.high + '&#8451' +'</div><img class="weather_icon" src="'+ getUrl(f.code) +'"alt="Img not found"><div class="weather_text">' + f.text +'</div></div>';
                           });
                        }
 
                   // Update content
-                  view.popup.content = forecast + getButton(lat, lon);
+                  view.popup.content = forecast + '<div class="clearfix"></div></div></div>' + getButton(lat, lon);
                 }
             });
 
