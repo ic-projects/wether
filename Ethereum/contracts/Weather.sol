@@ -100,10 +100,10 @@ contract Weather is usingOraclize {
 
 		accounts[msg.sender].insurances[index].claimed = true;
 
-        bytes32 myid = oraclize_query("URL", sconcat(sconcat("http://api.wunderground.com/api/Your_Key/history",
+        bytes32 myid = oraclize_query("URL", sconcat(sconcat("json(http://api.wunderground.com/api/323c0323a2c78fcd/history_",
 		dateToString(accounts[msg.sender].insurances[index].date) , "/q/",
 		accounts[msg.sender].insurances[index].latitude, ","),
-		accounts[msg.sender].insurances[index].longitude , ".json", "" , ""));
+		accounts[msg.sender].insurances[index].longitude , ".json", ").history.dailysummary[0].precipm" , ""));
 		oracleResults[myid].account = msg.sender;
 		oracleResults[myid].index = index;
 		oracleResults[myid].returned = false;
@@ -223,7 +223,8 @@ function sconcat(string _a, string _b, string _c, string _d, string _e) internal
 		address sender = oracleResults[myid].account;
 
 		//TODO parse result to bool
-		bool res = false;
+		bool res = !stringsEqual(result, "0.0");
+
 		oracleResults[myid].returned = true;
 		uint index = oracleResults[myid].index;
 
@@ -232,6 +233,20 @@ function sconcat(string _a, string _b, string _c, string _d, string _e) internal
 				accounts[sender].insurances[index].claimed  = false;
 			}
 		}
-
 		}
+
+		function stringsEqual(string memory _a, string memory _b) internal returns (bool) {
+		bytes memory a = bytes(_a);
+		bytes memory b = bytes(_b);
+		if (a.length != b.length)
+			return false;
+		// @todo unroll this loop
+		for (uint i = 0; i < a.length; i ++)
+			if (a[i] != b[i])
+				return false;
+		return true;
+	}
+
+
+
 }
