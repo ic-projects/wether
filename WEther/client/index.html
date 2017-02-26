@@ -27,12 +27,20 @@
   <div class="blur"></div>
 
   <section class="container map under-navbar">
+    {{> map}}
     You have <b id="insurance-number"></b> insurances.
     {{> addInsurance}}
     {{> debug}}
   </section>
   <script src="js/index.js"></script>
 </body>
+
+
+<template name="map">
+    <div class="map-container">
+        {{> googleMap name="map" options=mapOptions}}
+    </div>
+</template>
 
 <template name="debug">
     {{#each insurances}}
