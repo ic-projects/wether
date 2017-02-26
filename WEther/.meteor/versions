@@ -43,6 +43,8 @@ minifier-css@1.2.16
 minifier-js@1.2.17
 minimongo@1.0.20
 mizzao:bootstrap-3@3.3.1_1
+mizzao:build-fetcher@0.2.0
+mizzao:jquery-ui@1.11.4
 mobile-experience@1.0.4
 mobile-status-bar@1.0.14
 modules@0.7.9

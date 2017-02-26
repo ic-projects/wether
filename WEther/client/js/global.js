@@ -1,6 +1,7 @@
 import {Template} from 'meteor/templating';
 import {Mongo} from 'meteor/mongo';
 
+Misc = new Mongo.Collection(null);
 Insurances = new Mongo.Collection(null);
 Markers = new Mongo.Collection(null);
 import '../index.html';
@@ -358,6 +359,7 @@ contractInstance = Contract.at(contractAddress);
 
 
 Meteor.startup(function () {
+  Misc.insert({wallet: web3.eth.defaultAccount});
   $(window).scrollTop(0);
 
   GoogleMaps.load({key: "AIzaSyDYoE9bRSK0NHdxYqKve9pYv9NVDGIOV-8"});
@@ -523,4 +525,10 @@ Template.map.onCreated(function () {
       }
     });
   });
+});
+
+Template.ethWallet.helpers({
+  walletAddress: function() {
+    return web3.eth.defaultAccount;
+  }
 });

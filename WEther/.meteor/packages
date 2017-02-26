@@ -24,3 +24,4 @@ ethereum:web3
 session
 mizzao:bootstrap-3
 dburles:google-maps
+mizzao:jquery-ui
