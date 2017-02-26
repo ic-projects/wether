@@ -1,6 +1,6 @@
 pragma solidity ^0.4.4;
-import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
-import "Help.sol" as Help;
+import "./usingOraclize.sol";
+import "./Help.sol";
 
 contract Weather is usingOraclize {
 
@@ -35,6 +35,7 @@ contract Weather is usingOraclize {
 
 
 	function Weather() {
+		OAR = OraclizeAddrResolverI(0x6f485c8bf6fc43ea212e93bbf8ce046c7f1cb475);
 		owner = msg.sender;
 		minAmount = 0;
 		dayInsuranceBuffer = 1;
@@ -112,7 +113,7 @@ contract Weather is usingOraclize {
 	}
 
     function dateToString(uint date) constant returns (string) {
-        Help.DateTime.DateTime memory d = Help.DateTime.parseTimestamp(date);
+        Help.DateTime memory d = Help.parseTimestamp(date);
 
         string memory yyyy = bytes32ToString(uintToBytes(d.year));
         string memory mm = bytes32ToString(uintToBytes(d.month));
