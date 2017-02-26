@@ -1,0 +1,221 @@
+{
+  "response": {
+  "version": "0.1",
+  "termsofService": "http://www.wunderground.com/weather/api/d/terms.html",
+  "features": {
+  "planner": 1
+  }
+  },
+  "trip": {
+  "title": "Historical Summary for July 01 - July 31",
+  "airport_code": "KSFO",
+  "error": "",
+  "period_of_record": {
+  "date_start": {
+  "date": {
+  "epoch": "867783600",
+  "pretty": "12:00 PM PDT on July 01, 1997",
+  "day": 1,
+  "month": 7,
+  "year": 1997,
+  "yday": 181,
+  "hour": 12,
+  "min": "00",
+  "sec": 0,
+  "isdst": "1",
+  "monthname": "July",
+  "weekday_short": "Tue",
+  "weekday": "Tuesday",
+  "ampm": "PM",
+  "tz_short": "PDT",
+  "tz_long": "America/Los_Angeles"
+  }
+  },
+  "date_end": {
+  "date": {
+  "epoch": "1341255600",
+  "pretty": "12:00 PM PDT on July 02, 2012",
+  "day": 2,
+  "month": 7,
+  "year": 2012,
+  "yday": 183,
+  "hour": 12,
+  "min": "00",
+  "sec": 0,
+  "isdst": "1",
+  "monthname": "July",
+  "weekday_short": "Mon",
+  "weekday": "Monday",
+  "ampm": "PM",
+  "tz_short": "PDT",
+  "tz_long": "America/Los_Angeles"
+  }
+  }
+  },
+  "temp_high": {
+  "min": {
+  "F": "60",
+  "C": "16"
+  },
+  "avg": {
+  "F": "71",
+  "C": "22"
+  },
+  "max": {
+  "F": "97",
+  "C": "36"
+  }
+  },
+  "temp_low": {
+  "min": {
+  "F": "48",
+  "C": "9"
+  },
+  "avg": {
+  "F": "55",
+  "C": "13"
+  },
+  "max": {
+  "F": "63",
+  "C": "17"
+  }
+  },
+  "precip": {
+  "min": {
+  "in": "0.00",
+  "cm": "0.0"
+  },
+  "avg": {
+  "in": "0.00",
+  "cm": "0.0"
+  },
+  "max": {
+  "in": "0.01",
+  "cm": "0.2"
+  }
+  },
+  "dewpoint_high": {
+  "min": {
+  "F": "48",
+  "C": "9"
+  },
+  "avg": {
+  "F": "56",
+  "C": "13"
+  },
+  "max": {
+  "F": "64",
+  "C": "18"
+  }
+  },
+  "dewpoint_low": {
+  "min": {
+  "F": "45",
+  "C": "7"
+  },
+  "avg": {
+  "F": "51",
+  "C": "11"
+  },
+  "max": {
+  "F": "59",
+  "C": "15"
+  }
+  },
+  "cloud_cover": {
+  "cond": "mostly sunny"
+  },
+  "chance_of": {
+  "tempoversixty": {
+  "name": "Warm",
+  "description": "temperature over 60°F / 16°C and below 90°F / 32°C",
+  "percentage": "100"
+  },
+  "chanceofwindyday": {
+  "name": "Windy",
+  "description": "average wind over 10 mph / 15km/h",
+  "percentage": "69"
+  },
+  "chanceofpartlycloudyday": {
+  "name": "Partly Cloudy",
+  "description": "",
+  "percentage": "48"
+  },
+  "chanceofsunnycloudyday": {
+  "name": "Sunny",
+  "description": "",
+  "percentage": "37"
+  },
+  "chanceofcloudyday": {
+  "name": "Cloudy",
+  "description": "",
+  "percentage": "15"
+  },
+  "chanceoffogday": {
+  "name": "Fog",
+  "description": "",
+  "percentage": "11"
+  },
+  "chanceofhumidday": {
+  "name": "Humid",
+  "description": "dew point over 60°F / 16°C",
+  "percentage": "6"
+  },
+  "chanceofprecip": {
+  "name": "Precipitation",
+  "description": "",
+  "percentage": "1"
+  },
+  "chanceofrainday": {
+  "name": "Rain",
+  "description": "",
+  "percentage": "1"
+  },
+  "tempoverninety": {
+  "name": "Hot",
+  "description": "temperature over 90°F / 32°C",
+  "percentage": "0"
+  },
+  "chanceofthunderday": {
+  "name": "Thunderstorms",
+  "description": "",
+  "percentage": "0"
+  },
+  "chanceofsnowonground": {
+  "name": "Ground Snow",
+  "description": "",
+  "percentage": "0"
+  },
+  "chanceoftornadoday": {
+  "name": "Tornado",
+  "description": "",
+  "percentage": "0"
+  },
+  "chanceofsultryday": {
+  "name": "Sweltering",
+  "description": "dew point over 70°F / 21°C",
+  "percentage": "0"
+  },
+  "tempbelowfreezing": {
+  "name": "Freezing",
+  "description": "temperature below 32°F / 0°C",
+  "percentage": "0"
+  },
+  "tempoverfreezing": {
+  "name": "Cool",
+  "description": "temperature between 32°F / 0°C and 60°F / 16° C",
+  "percentage": "0"
+  },
+  "chanceofhailday": {
+  "name": "Hail",
+  "description": "",
+  "percentage": "0"
+  },
+  "chanceofsnowday": {
+  "name": "Snow",
+  "description": "",
+  "percentage": "0"
+  }
+  }
+  }
+}
