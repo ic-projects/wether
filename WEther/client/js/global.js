@@ -1,10 +1,11 @@
 import { Template } from 'meteor/templating';
 import { Mongo } from 'meteor/mongo';
-var Insurances = new Mongo.Collection(null);
+
+Insurances = new Mongo.Collection(null);
 
 import '../index.html';
 
-let abi = [
+abi = [
   {
     "constant": false,
     "inputs": [
@@ -351,19 +352,19 @@ let abi = [
     "type": "event"
   }
 ];
-let contractAddress = "0x050709434db5d549735cb08e62ae173772160240";
-let Contract = web3.eth.contract(abi);
-let contractInstance = Contract.at(contractAddress);
+contractAddress = "0x050709434db5d549735cb08e62ae173772160240";
+Contract = web3.eth.contract(abi);
+contractInstance = Contract.at(contractAddress);
 
-let reloadInsurances = function() {
-  // Resets the Insurances collection
-  Insurances.remove({});
-
+Meteor.startup(function() {
   contractInstance.getInsuranceLength(function(error, result) {
     if (error) {
       console.log("Error: " + error);
       return;
     }
+
+    // Resets the Insurances collection
+    Insurances.remove({});
 
     // Display number of insurances to the user
     document.getElementById("insurance-number").innerHTML = String(result);
@@ -384,30 +385,23 @@ let reloadInsurances = function() {
          * 3: date
          * 4: claimed
          * 5: exists
+         * 6: index
          */
 
         if (result[5]) {
           Insurances.insert({
-            longitude: parseInt(result[0]),
-            latitude: parseInt(result[1]),
+            latitude: result[0],
+            longitude: result[1],
             totalPayout: web3.fromWei(String(result[2]), "ether"),
             date: parseInt(result[3]),
-            claimed: result[4]
+            claimed: result[4],
+            index: parseInt(result[6])
           });
         }
       });
     }
   });
-};
-
-Meteor.startup(function() {
-  reloadInsurances();
 });
-
-function locationSelect(latitude, longitude) {
-  // Launch modal for insurance
-  $("div[name=insurance-modal]").modal(true);
-}
 
 Template.addInsurance.events({
   "click .submitInsuranceForm": function(event, template) {
@@ -416,15 +410,28 @@ Template.addInsurance.events({
     let date = parseInt(Date.parse(template.find("#date").value) / 1000);
     let amount = parseInt(template.find("#amount").value);
 
-    contractInstance.createInsurance.sendTransaction(longitude, latitude, date, {value: web3.toWei(amount, "ether")}, function(error, result) {
+    contractInstance.forceCreateInsurance.sendTransaction(latitude, longitude, date, {value: web3.toWei(amount, "ether")}, function(error, result) {
+      if (error) {
+        console.log("Error: " + error);
+        return;
+      }
+      // Need to run loading insurance function
+      // TODO: Solve blockchain delay issue
+      $("div[name=insurance-modal]").modal("hide");
+      window.location.reload();
+    });
+  }
+});
+
+Template.debug.events({
+  "click .payout": function(event, template) {
+    contractInstance.payout.sendTransaction(parseInt(event.target.getAttribute("claim-index")), function(error, result) {
       if (error) {
         console.log("Error: " + error);
         return;
       }
 
-      // Need to run loading insurance function
-      // TODO: Fix this
-      reloadInsurances();
+      console.log("got here");
     });
   }
 });
