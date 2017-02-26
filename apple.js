@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="https://js.arcgis.com/4.2/esri/css/main.css">
   <script src="https://js.arcgis.com/4.2/"></script>
 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script>
 
     function locationSelect(lat, lon) {
@@ -115,8 +116,10 @@
 
 
           /****************************
-           * Popup Triggers
+           * Action Triggers & Popup
            ****************************/
+
+          /****** Popups ******/
 
           function setUpPopup(point) {
               // Gets the coordinates of the click on the view
@@ -146,8 +149,8 @@
 
           function triggerPopup(name, lat, lon) {
             view.popup.title = name;
-            view.popup.content = getContent(lat, lon);
-
+            getWeather(lat, lon);
+            //view.popup.content = getContent(lat, lon);
           }
 
           function triggerErrorPopup() {
@@ -155,14 +158,63 @@
             view.popup.content = "We couldn't find an address<br />Try clicking closer to a road";
           }
 
-          function getContent(lat, lon) {
-             return '<button id="insureMe" class="btn btn-primary" onclick="locationSelect('+
-               lat + ', ' + lon + ')">Insure</button>';
+          /****** Weather ******/
+
+          function getButton(lat, lon) {
+
+               return '<button id="insureMe" class="btn btn-primary" onclick="locationSelect('
+                      + lat + ', ' + lon + ')">Insure</button>';
           }
 
+          function getWeather(lat, lon) {
+
+            var url = 'https://query.yahooapis.com/v1/public/yql';
+            var yql = 'select title, units.temperature, item.forecast from weather.forecast where woeid in (select woeid from geo.places where text="({'+ lat + '}, {'+ lon + '})a") and u = "C" limit 5 | sort(field="item.forecast.date", descending="false");';
+
+            var iconUrl = 'https://s.yimg.com/zz/combo?a/i/us/we/52/';
+
+            $.ajax({url: url, data: {format: 'json', q: yql}, method: 'GET', dataType: 'json',
+                success: function(data) {
+                    var forecast = "";
+                        if (data.query.count > 0) {
+                        jQuery.each(data.query.results.channel, function(idx, result) {
+                            console.log(result);
+                            var f = result.item.forecast;
+                            var u = result.units.temperature;
+
+                            forecast += '<div id="weather" class="weather"><div class="weather_date">' + f.date + '</div> <div class="weather_temp"><div class="weather_temp_min">' + f.low + u +'</div><div class="weather_temp_max">' + f.high + u +'</div></div><img class="weather_icon" src="'+ getUrl(f.code) +'"alt="Img not found"><div class="weather_text">' + f.text +'</div></div>';
+
+                          });
+                       }
+
+                  // Update content
+                  view.popup.content = forecast + getButton(lat, lon);
+                }
+            });
+
+          }
+
+        // END OF GETMAP FUNCTION
 
         });
     }
+
+    // ImgParser
+    function getUrl(code) {
+      switch(code) {
+        case 26:
+          return "/Weather/Clouds.png"
+        case 32:
+          return "/Weather/Sun.png"
+        case 44:
+          return "/Weather/Partly_Cloudy.png"
+        case 10:
+          return "/Weather/Rain.png"
+        case 31:
+          return "/Weather/Moon.png"
+      }
+    }
+
 
     function defaultLocation(err) {
       document.getElementbyId("MapContainer") = "Please give us access to your location";
