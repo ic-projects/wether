@@ -1,13 +1,31 @@
 import { Template } from 'meteor/templating';
-import React, { Component, PropTypes } from 'react';
 import { Mongo } from 'meteor/mongo';
-import ReactDOM from 'react-dom';
-import { ReactiveVar } from 'meteor/reactive-var';
-Insurances = new Mongo.Collection(null);
+var Insurances = new Mongo.Collection(null);
 
 import '../index.html';
 
 let abi = [
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "lat",
+        "type": "string"
+      },
+      {
+        "name": "long",
+        "type": "string"
+      },
+      {
+        "name": "date",
+        "type": "uint256"
+      }
+    ],
+    "name": "createInsurance",
+    "outputs": [],
+    "payable": true,
+    "type": "function"
+  },
   {
     "constant": true,
     "inputs": [],
@@ -25,48 +43,53 @@ let abi = [
     "constant": false,
     "inputs": [
       {
-        "name": "lat",
-        "type": "int256"
+        "name": "myid",
+        "type": "bytes32"
       },
       {
-        "name": "long",
-        "type": "int256"
-      },
-      {
-        "name": "date",
-        "type": "uint256"
+        "name": "result",
+        "type": "string"
       }
     ],
-    "name": "createInsurance",
+    "name": "__callback",
     "outputs": [],
-    "payable": true,
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "myid",
+        "type": "bytes32"
+      },
+      {
+        "name": "result",
+        "type": "string"
+      },
+      {
+        "name": "proof",
+        "type": "bytes"
+      }
+    ],
+    "name": "__callback",
+    "outputs": [],
+    "payable": false,
     "type": "function"
   },
   {
     "constant": true,
     "inputs": [
       {
-        "name": "lat",
-        "type": "int256"
-      },
-      {
-        "name": "long",
-        "type": "int256"
-      },
-      {
         "name": "date",
-        "type": "uint256"
-      },
-      {
-        "name": "amount",
         "type": "uint256"
       }
     ],
-    "name": "getPayoutQuote",
+    "name": "dateToString",
     "outputs": [
       {
-        "name": "payout",
-        "type": "uint256"
+        "name": "",
+        "type": "string"
       }
     ],
     "payable": false,
@@ -77,11 +100,11 @@ let abi = [
     "inputs": [
       {
         "name": "lat",
-        "type": "int256"
+        "type": "string"
       },
       {
         "name": "long",
-        "type": "int256"
+        "type": "string"
       },
       {
         "name": "date",
@@ -89,12 +112,7 @@ let abi = [
       }
     ],
     "name": "forceCreateInsurance",
-    "outputs": [
-      {
-        "name": "success",
-        "type": "bool"
-      }
-    ],
+    "outputs": [],
     "payable": true,
     "type": "function"
   },
@@ -118,11 +136,11 @@ let abi = [
     "outputs": [
       {
         "name": "",
-        "type": "int256"
+        "type": "string"
       },
       {
         "name": "",
-        "type": "int256"
+        "type": "string"
       },
       {
         "name": "",
@@ -139,6 +157,10 @@ let abi = [
       {
         "name": "",
         "type": "bool"
+      },
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,
@@ -165,6 +187,42 @@ let abi = [
       {
         "name": "",
         "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "bytes32"
+      }
+    ],
+    "name": "bytes32ToString",
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "v",
+        "type": "uint256"
+      }
+    ],
+    "name": "uintToBytes",
+    "outputs": [
+      {
+        "name": "ret",
+        "type": "bytes32"
       }
     ],
     "payable": false,
@@ -241,24 +299,66 @@ let abi = [
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "lat",
+        "type": "string"
+      },
+      {
+        "name": "long",
+        "type": "string"
+      },
+      {
+        "name": "date",
+        "type": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPayoutQuote",
+    "outputs": [
+      {
+        "name": "payout",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "inputs": [],
     "payable": false,
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "result",
+        "type": "string"
+      }
+    ],
+    "name": "oracleResult",
+    "type": "event"
   }
 ];
-let contractAddress = "0x279e0d42bd5f724694443478c8d3b7937afab75a";
+let contractAddress = "0x050709434db5d549735cb08e62ae173772160240";
 let Contract = web3.eth.contract(abi);
 let contractInstance = Contract.at(contractAddress);
 
-function Insurance(longitude, latitude, totalPayout, date, claimed) {
-  this.longitude = longitude;
-  this.latitude = latitude;
-  this.totalPayout = totalPayout;
-  this.date = date;
-  this.claimed = claimed;
-}
+let reloadInsurances = function() {
+  // Resets the Insurances collection
+  Insurances.remove({});
 
-Meteor.startup(function() {
   contractInstance.getInsuranceLength(function(error, result) {
     if (error) {
       console.log("Error: " + error);
@@ -298,15 +398,55 @@ Meteor.startup(function() {
       });
     }
   });
+};
+
+Meteor.startup(function() {
+  reloadInsurances();
 });
 
-// contractInstance.createInsurance.sendTransaction(980, 69, 14917829900, {value: web3.toWei(1, "ether")}, function(error, result) {
-//   alert(error);
-//   console.log(result);
-// });
+function locationSelect(latitude, longitude) {
+  // Launch modal for insurance
+  $("div[name=insurance-modal]").modal(true);
+}
+
+Template.addInsurance.events({
+  "click .submitInsuranceForm": function(event, template) {
+    let longitude = template.find("#longitude").value;
+    let latitude = template.find("#latitude").value;
+    let date = parseInt(Date.parse(template.find("#date").value) / 1000);
+    let amount = parseInt(template.find("#amount").value);
+
+    contractInstance.createInsurance.sendTransaction(longitude, latitude, date, {value: web3.toWei(amount, "ether")}, function(error, result) {
+      if (error) {
+        console.log("Error: " + error);
+        return;
+      }
+
+      // Need to run loading insurance function
+      // TODO: Fix this
+      reloadInsurances();
+    });
+  }
+});
+
+// Temporary modal input values for convenience
+Template.addInsurance.helpers({
+  longitude: function() {
+    return 49.00;
+  },
+  latitude: function() {
+    return 94.00;
+  },
+  date: function() {
+    return "2017-03-15";
+  },
+  amount: function() {
+    return "1";
+  }
+});
 
 Template.debug.helpers({
   insurances: function() {
-    return Insurances.find().fetch();
+    return Insurances.find();
   }
 });
