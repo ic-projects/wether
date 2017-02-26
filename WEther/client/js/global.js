@@ -1,7 +1,6 @@
 import {Template} from 'meteor/templating';
 import {Mongo} from 'meteor/mongo';
 
-Misc = new Mongo.Collection(null);
 Insurances = new Mongo.Collection(null);
 Markers = new Mongo.Collection(null);
 import '../index.html';
@@ -359,7 +358,6 @@ contractInstance = Contract.at(contractAddress);
 
 
 Meteor.startup(function () {
-  Misc.insert({wallet: web3.eth.defaultAccount});
   $(window).scrollTop(0);
 
   GoogleMaps.load({key: "AIzaSyDYoE9bRSK0NHdxYqKve9pYv9NVDGIOV-8"});
@@ -436,6 +434,13 @@ Template.insured.events({
 
       console.log("got here");
     });
+  },
+  "click .tableRow": function(event, template) {
+    latitude = parseFloat($(event.currentTarget).children(".latitude").html());
+    longitude = parseFloat($(event.currentTarget).children(".longitude").html());
+
+    GoogleMaps.maps.map.instance.panTo({lat: latitude, lng: longitude});
+    Markers.update({_id: Markers.find().fetch()[0]._id}, {$set: {lat: latitude, lng: longitude}});
   }
 });
 

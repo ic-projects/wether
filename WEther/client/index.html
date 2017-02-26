@@ -11,6 +11,10 @@
     <div class="container">
       <a class="navbar-brand" href="#"><img src="img/logo.png" alt="weAther"></a>
 
+      <div class="form-group navbar-right">
+        <button onclick="locationInsure()" type="button" class="btn btn-success">Insure</button>
+      </div>
+
       <ul class="nav navbar-nav navbar-right">
         <li class="addInsurance active"><a href="">Add Insurance</a></li>
         <li class="insurances"><a href="manage">My Insurances</a></li>
@@ -51,7 +55,7 @@
     <div class="page-header">
       <h1 id="manage">Manage Your Insurances</h1>
     </div>
-    <table class="table">
+    <table class="table table-hover">
       <thead>
         <tr>
           <th>Number</th>
@@ -64,14 +68,18 @@
       </thead>
       <tbody>
       {{#each insurances}}
-          <tr>
+          <tr class="tableRow">
             <td>{{index}}</td>
-            <td>{{latitude}}</td>
-            <td>{{longitude}}</td>
+            <td class="latitude">{{latitude}}</td>
+            <td class="longitude">{{longitude}}</td>
             <td>{{toDate(date)}}</td>
             <td>{{totalPayout}}</td>
             <td>
-              <button type="button" class="btn btn-success payout" claim-index="{{index}}" disabled="{{claimed}}">Payout</button>
+              {{#if claimed}}
+                  <button type="button" class="btn btn-danger payout" claim-index="{{index}}" disabled>Claimed</button>
+              {{else}}
+                  <button type="button" class="btn btn-success payout" claim-index="{{index}}">Payout</button>
+              {{/if}}
             </td>
           </tr>
       {{/each}}

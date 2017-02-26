@@ -582,8 +582,32 @@
       "links": {},
       "address": "0x050709434db5d549735cb08e62ae173772160240",
       "updated_at": 1488097488918
+    },
+    "1488110029993": {
+      "events": {
+        "0xdb04b60e116b54360576bc5410b2480ed5a83a92341b522ae54ec7735c9660ba": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "id",
+              "type": "bytes32"
+            },
+            {
+              "indexed": false,
+              "name": "result",
+              "type": "string"
+            }
+          ],
+          "name": "oracleResult",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x050709434db5d549735cb08e62ae173772160240",
+      "updated_at": 1488110055711
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1488097488918
+  "updated_at": 1488110055711
 }
