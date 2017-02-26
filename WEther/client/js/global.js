@@ -1,5 +1,5 @@
-import { Template } from 'meteor/templating';
-import { Mongo } from 'meteor/mongo';
+import {Template} from 'meteor/templating';
+import {Mongo} from 'meteor/mongo';
 
 Insurances = new Mongo.Collection(null);
 Markers = new Mongo.Collection(null);
@@ -357,9 +357,11 @@ Contract = web3.eth.contract(abi);
 contractInstance = Contract.at(contractAddress);
 
 
-Meteor.startup(function() {
-    GoogleMaps.load({key: "AIzaSyDYoE9bRSK0NHdxYqKve9pYv9NVDGIOV-8"});
-  contractInstance.getInsuranceLength(function(error, result) {
+Meteor.startup(function () {
+  $(window).scrollTop(0);
+
+  GoogleMaps.load({key: "AIzaSyDYoE9bRSK0NHdxYqKve9pYv9NVDGIOV-8"});
+  contractInstance.getInsuranceLength(function (error, result) {
     if (error) {
       console.log("Error: " + error);
       return;
@@ -368,12 +370,9 @@ Meteor.startup(function() {
     // Resets the Insurances collection
     Insurances.remove({});
 
-    // Display number of insurances to the user
-    document.getElementById("insurance-number").innerHTML = String(result);
-
     // Build up the list of Insurance objects
     for (i = 0; i < parseInt(result); i++) {
-      contractInstance.getInsurance(i, function(error, result) {
+      contractInstance.getInsurance(i, function (error, result) {
         if (error) {
           console.log("Error: " + error);
           return;
@@ -406,13 +405,13 @@ Meteor.startup(function() {
 });
 
 Template.addInsurance.events({
-  "click .submitInsuranceForm": function(event, template) {
+  "click .submitInsuranceForm": function (event, template) {
     let longitude = template.find("#longitude").value;
     let latitude = template.find("#latitude").value;
     let date = parseInt(Date.parse(template.find("#date").value) / 1000);
     let amount = parseInt(template.find("#amount").value);
 
-    contractInstance.forceCreateInsurance.sendTransaction(latitude, longitude, date, {value: web3.toWei(amount, "ether")}, function(error, result) {
+    contractInstance.forceCreateInsurance.sendTransaction(latitude, longitude, date, {value: web3.toWei(amount, "ether")}, function (error, result) {
       if (error) {
         console.log("Error: " + error);
         return;
@@ -425,9 +424,9 @@ Template.addInsurance.events({
   }
 });
 
-Template.debug.events({
-  "click .payout": function(event, template) {
-    contractInstance.payout.sendTransaction(parseInt(event.target.getAttribute("claim-index")), function(error, result) {
+Template.insured.events({
+  "click .payout": function (event, template) {
+    contractInstance.payout.sendTransaction(parseInt(event.target.getAttribute("claim-index")), function (error, result) {
       if (error) {
         console.log("Error: " + error);
         return;
@@ -440,85 +439,88 @@ Template.debug.events({
 
 // Temporary modal input values for convenience
 Template.addInsurance.helpers({
-  longitude: function() {
+  longitude: function () {
     return 49.00;
   },
-  latitude: function() {
+  latitude: function () {
     return 94.00;
   },
-  date: function() {
+  date: function () {
     return "2017-03-15";
   },
-  amount: function() {
+  amount: function () {
     return "1";
   }
 });
 
-Template.debug.helpers({
-  insurances: function() {
+Template.insured.helpers({
+  insurances: function () {
     return Insurances.find();
+  },
+  toDate: function(unix) {
+    return new Date(unix * 1000).toDateString();
   }
 });
 
 Template.map.helpers({
-    mapOptions: function() {
-        if (GoogleMaps.loaded()) {
-            return {
-                center: new google.maps.LatLng(51.5, -0.12),
-                zoom: 10
-            };
-        }
+  mapOptions: function () {
+    if (GoogleMaps.loaded()) {
+      return {
+        center: new google.maps.LatLng(51.5, -0.12),
+        zoom: 10,
+        scrollwheel: false
+      };
     }
+  }
 });
 
-Template.map.onCreated(function() {
+Template.map.onCreated(function () {
+  GoogleMaps.ready('map', function (map) {
+    Markers.insert({lat: 51.5, lng: -0.12});
+    //Markers.insert({_id: 1, lat: event.latLng.lat(), lng: event.latLng.lng()});
+    console.log("got here");
+    google.maps.event.addListener(map.instance, 'click', function (event) {
 
-    GoogleMaps.ready('map', function(map) {
-        Markers.insert({lat: 51.5, lng: -0.12});
-      //Markers.insert({_id: 1, lat: event.latLng.lat(), lng: event.latLng.lng()});
-        console.log("got here");
-        google.maps.event.addListener(map.instance, 'click', function(event) {
-
-            Markers.update({_id:Markers.find().fetch()[0]._id},{$set: {lat: event.latLng.lat(), lng: event.latLng.lng()}});
-        });
-
-        var markers = {};
-
-        Markers.find().observe({
-            added: function(document) {
-                // Create a marker for this document
-                var marker = new google.maps.Marker({
-                    draggable: true,
-                    animation: google.maps.Animation.DROP,
-                    position: new google.maps.LatLng(document.lat, document.lng),
-                    map: map.instance,
-                    // We store the document _id on the marker in order
-                    // to update the document within the 'dragend' event below.
-                    id: document._id
-                });
-
-                // This listener lets us drag markers on the map and update their corresponding document.
-                google.maps.event.addListener(marker, 'dragend', function(event) {
-                    Markers.update(marker.id, { $set: { lat: event.latLng.lat(), lng: event.latLng.lng() }});
-                });
-
-                // Store this marker instance within the markers object.
-                markers[document._id] = marker;
-            },
-            changed: function(newDocument, oldDocument) {
-                markers[newDocument._id].setPosition({ lat: newDocument.lat, lng: newDocument.lng });
-            },
-            removed: function(oldDocument) {
-                // Remove the marker from the map
-                markers[oldDocument._id].setMap(null);
-
-                // Clear the event listener
-                google.maps.event.clearInstanceListeners(
-                    markers[oldDocument._id]);
-
-                // Remove the reference to this marker instance
-                delete markers[oldDocument._id];
-            }
-        });
+      Markers.update({_id: Markers.find().fetch()[0]._id}, {$set: {lat: event.latLng.lat(), lng: event.latLng.lng()}});
     });
+
+    var markers = {};
+
+    Markers.find().observe({
+      added: function (document) {
+        // Create a marker for this document
+        var marker = new google.maps.Marker({
+          draggable: true,
+          animation: google.maps.Animation.DROP,
+          position: new google.maps.LatLng(document.lat, document.lng),
+          map: map.instance,
+          // We store the document _id on the marker in order
+          // to update the document within the 'dragend' event below.
+          id: document._id
+        });
+
+        // This listener lets us drag markers on the map and update their corresponding document.
+        google.maps.event.addListener(marker, 'dragend', function (event) {
+          Markers.update(marker.id, {$set: {lat: event.latLng.lat(), lng: event.latLng.lng()}});
+        });
+
+        // Store this marker instance within the markers object.
+        markers[document._id] = marker;
+      },
+      changed: function (newDocument, oldDocument) {
+        markers[newDocument._id].setPosition({lat: newDocument.lat, lng: newDocument.lng});
+      },
+      removed: function (oldDocument) {
+        // Remove the marker from the map
+        markers[oldDocument._id].setMap(null);
+
+        // Clear the event listener
+        google.maps.event.clearInstanceListeners(
+          markers[oldDocument._id]);
+
+        // Remove the reference to this marker instance
+        delete markers[oldDocument._id];
+      }
+    });
+  });
 });

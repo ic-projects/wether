@@ -1,9 +1,12 @@
 <head>
   <title>WEther</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
 </head>
 <body>
+  <div id="MapContainer"></div>
   <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
       <a class="navbar-brand" href="#"><img src="img/logo.png" alt="weAther"></a>
@@ -26,11 +29,10 @@
 
   <div class="blur"></div>
 
-  <section class="container map under-navbar">
+  <section class="map under-navbar">
     {{> map}}
-    You have <b id="insurance-number"></b> insurances.
     {{> addInsurance}}
-    {{> debug}}
+    {{> insured}}
   </section>
   <script src="js/index.js"></script>
 </body>
@@ -42,21 +44,38 @@
     </div>
 </template>
 
-<template name="debug">
-    {{#each insurances}}
-      <div class="card">
-        <div class="card-block">
-          Lat = {{latitude}}
-          Long = {{longitude}}
-          Pay = {{totalPayout}}
-          Date = {{date}}
-          Claimed = {{claimed}}
-          {{#unless claimed}}
-            <button type="button" class="btn btn-success payout" claim-index="{{index}}">Payout</button>
-          {{/unless}}
-        </div>
-      </div>
-    {{/each}}
+<template name="insured">
+  <div class="container">
+    <div class="page-header">
+      <h1>Manage Your Insurances</h1>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Number</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Date</th>
+          <th>Amount (ETH)</th>
+          <th>Claim</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{#each insurances}}
+          <tr>
+            <td>{{index}}</td>
+            <td>{{latitude}}</td>
+            <td>{{longitude}}</td>
+            <td>{{toDate(date)}}</td>
+            <td>{{totalPayout}}</td>
+            <td>
+              <button type="button" class="btn btn-success payout" claim-index="{{index}}" disabled="{{claimed}}">Payout</button>
+            </td>
+          </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <template name="addInsurance">

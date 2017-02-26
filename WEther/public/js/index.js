@@ -1,8 +1,8 @@
 overlay = $(".blur, .slogan-overlay .container");
 
 overlay.hover(function() {
-  $(".slogan-overlay").fadeOut(300);
-  $(".blur").fadeOut(300);
+  $(".slogan-overlay").fadeOut(400);
+  $(".blur").fadeOut(400);
 });
 
 function locationSelect(latitude, longitude) {
