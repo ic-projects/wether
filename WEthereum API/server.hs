@@ -103,7 +103,7 @@ wuApiKey
 
 wuApiRequest :: Network.HTTP.Simple.Request
 wuApiRequest
-  = setRequestHost "http://api.wunderground.com" defaultRequest
+  = setRequestHost "api.wunderground.com" defaultRequest
 
 serverConfig :: ServerConfig
 serverConfig
@@ -125,9 +125,8 @@ wethereumServer
       path $ \(latitude :: String) ->
       path $ \(value :: Int) ->
     do
-      prob <- liftIO $ fmap show (calculatePayout unixTimestamp longitude latitude value)
-      ok $ toResponse ("{\"value\":" ++ prob ++ "}")
-
+      payout <- liftIO $ fmap show (calculatePayout unixTimestamp longitude latitude value)
+      ok $ toResponse ("{\"value\": " ++ payout ++ "}" :: String)
 
 calculatePayout :: Int -> String -> String -> Int -> IO Int
 calculatePayout unixTimestamp longitude latitude value
@@ -154,12 +153,13 @@ getPredictedPrecipProb unixTimestamp longitude latitude
       getThisPrediction unixTimestamp forecastDays
       where
         apiPath = Data.ByteString.Char8.pack ("/api/" ++ wuApiKey
-               ++ "/forecast10day/q/" ++ latitude ++ "," ++ longitude ++ ".json")
+               ++ "/forecast10day/q/" ++ longitude ++ "," ++ latitude ++ ".json")
 
 getThisPrediction :: Int -> [Int] -> IO Int
 getThisPrediction unixTimestamp forecastDays
   = do
-      timeDifference <- fmap (subtract unixTimestamp . round) (liftIO getPOSIXTime)
+      timeDifference <- fmap (flip subtract unixTimestamp . round) (liftIO getPOSIXTime)
+      print timeDifference
       return (forecastDays !! (timeDifference `div` 86400))
 
 getAveragePrecipProb :: Int -> String -> String -> IO Int
@@ -172,7 +172,7 @@ getAveragePrecipProb unixTimestamp longitude latitude
     where
       apiPath = Data.ByteString.Char8.pack ("/api/" ++ wuApiKey
              ++ "/planner_" ++ showUnixTimestamp unixTimestamp ++ "/q/"
-             ++ latitude ++ "," ++ longitude ++ ".json")
+             ++ longitude ++ "," ++ latitude ++ ".json")
 
 showUnixTimestamp :: Int -> String
 showUnixTimestamp unixTimestamp
