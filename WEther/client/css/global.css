@@ -109,3 +109,32 @@ nav .form-group {
 nav .form-group .btn {
   font-size: 16px !important;
 }
+
+#forced{
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+.weather{
+  margin: auto;
+  width: 550px;
+}
+.weather_block {
+  display: inline-block;
+  float: left;
+  width: 110px;
+}
+.clearfix {
+  clear: both;
+}
+
+.weather_date{
+  font-weight:bold;
+  text-align: center;
+}
+.weather_temp{
+  text-align:center;
+}
+.weather_icon{
+  display: block;
+  margin:auto;
+}
