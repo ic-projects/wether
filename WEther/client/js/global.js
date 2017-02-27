@@ -484,8 +484,9 @@ Template.map.helpers({
 Template.map.onCreated(function () {
   GoogleMaps.ready('map', function (map) {
     Markers.insert({lat: 51.5, lng: -0.12});
+
     //Markers.insert({_id: 1, lat: event.latLng.lat(), lng: event.latLng.lng()});
-    console.log("got here");
+
     google.maps.event.addListener(map.instance, 'click', function (event) {
 
       Markers.update({_id: Markers.find().fetch()[0]._id}, {$set: {lat: event.latLng.lat(), lng: event.latLng.lng()}});
