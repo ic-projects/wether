@@ -48,6 +48,7 @@ nav ul li.active > a {
 
 .map {
   z-index: 1;
+  overflow-x: hidden;
 }
 
 .under-navbar {

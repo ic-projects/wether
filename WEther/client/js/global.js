@@ -356,11 +356,11 @@ contractAddress = "0x050709434db5d549735cb08e62ae173772160240";
 Contract = web3.eth.contract(abi);
 contractInstance = Contract.at(contractAddress);
 
-
 Meteor.startup(function () {
   $(window).scrollTop(0);
 
-  GoogleMaps.load({key: "AIzaSyDYoE9bRSK0NHdxYqKve9pYv9NVDGIOV-8"});
+    GoogleMaps.load({key: "AIzaSyDYoE9bRSK0NHdxYqKve9pYv9NVDGIOV-8"});
+
   contractInstance.getInsuranceLength(function (error, result) {
     if (error) {
       console.log("Error: " + error);
@@ -470,10 +470,27 @@ Template.insured.helpers({
 });
 
 Template.map.helpers({
-  mapOptions: function () {
-    if (GoogleMaps.loaded()) {
+  mapOptions: function() {
+
+    // Sorry Xiang for bad indentation... <3
+
+      // Take us to Buckingham if We don't have Geolocalization enabled
+        if (GoogleMaps.loaded()) {
+            if (Geolocation.error()) {
+                return {
+                    center: new google.maps.LatLng(51.502057, -0.139990),
+                    zoom: 10,
+                    scrollwheel: false
+                }
+            }
+        }
+      const latLon = Geolocation.latLng();
+
+    // Initialize the map once we have the latLng.
+    if (GoogleMaps.loaded() && latLon) {
+
       return {
-        center: new google.maps.LatLng(51.5, -0.12),
+        center: new google.maps.LatLng(latLon.lat, latLon.lng),
         zoom: 10,
         scrollwheel: false
       };
@@ -483,12 +500,19 @@ Template.map.helpers({
 
 Template.map.onCreated(function () {
   GoogleMaps.ready('map', function (map) {
-    Markers.insert({lat: 51.5, lng: -0.12});
+
+    // Actually the correct way to create a marker -- to keep?
+    // let marker = new google.maps.Marker({
+    //   position: new google.maps.LatLng(51.5, -0.12),//map.instance.center.lat(), map.instance.center.lng()),
+    //   map: map.instance
+    // });
+
+    // On the creation of the map, will create a marker at the center of the map
+    Markers.insert({lat: map.instance.center.lat(), lng: map.instance.center.lng()});
 
     //Markers.insert({_id: 1, lat: event.latLng.lat(), lng: event.latLng.lng()});
 
     google.maps.event.addListener(map.instance, 'click', function (event) {
-
       Markers.update({_id: Markers.find().fetch()[0]._id}, {$set: {lat: event.latLng.lat(), lng: event.latLng.lng()}});
     });
 
@@ -504,7 +528,8 @@ Template.map.onCreated(function () {
           map: map.instance,
           // We store the document _id on the marker in order
           // to update the document within the 'dragend' event below.
-          id: document._id
+          id: document._id,
+            title: "test"
         });
 
         // This listener lets us drag markers on the map and update their corresponding document.
