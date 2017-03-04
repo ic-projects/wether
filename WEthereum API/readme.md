@@ -1,4 +1,4 @@
-# Wethereum API
+# WEthereum API
 
 Haskell based API that returns a payout for weather insurance.
 
