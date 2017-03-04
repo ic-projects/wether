@@ -13,7 +13,9 @@ We used the Yahoo Weather Api to get weather data for the front-end, and we buil
 The insurance uses smart contracts for Ethereum, written in Solidity, and we used Oraclize to validate the transaction.
 
 ## Challenges We Ran Into
-Finding a weather api that gives us exactly what we needed - we spent like 6 hours Googling the options and in the end we found that none of them were suitable, and working out a risk algorithm that was fair to both sides using the data we could get hold of.
+Finding a weather api that gives us exactly what we needed - we spent like 6 hours Googling the options and in the end we found that none of them were suitable.
+
+Working out a risk algorithm that was fair to both sides using the data we could get hold of.
 
 Writing web-stuff in Haskell was super tough (we started as a joke), but it was definitely a good learning experience!
 
