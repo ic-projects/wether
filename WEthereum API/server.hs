@@ -1,19 +1,23 @@
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 module Main where
 
-import Happstack.Lite
-import Control.Monad.IO.Class
-import Data.Time.Clock.POSIX
-import Data.Time.Format
-import Network.HTTP.Simple
-import Data.Aeson
-import Data.ByteString.Char8
-import Data.ByteString.Lazy.Char8
-import Data.Maybe
+import           Control.Monad.IO.Class
+import           Crypto.Hash.SHA256
+import           Crypto.Secp256k1
+import           Data.Aeson
+import           Data.ByteString.Char8
+import           Data.ByteString.Lazy.Char8
+import           Data.Char
+import           Data.List
+import           Data.Maybe
+import           Data.Time.Clock.POSIX
+import           Data.Time.Format
+import           Happstack.Lite
+import           Network.HTTP.Simple
 
 testForecastJSON :: IO()
 testForecastJSON = do
@@ -101,6 +105,12 @@ wuApiKey :: String
 wuApiKey
   = "323c0323a2c78fcd"
 
+secretKey :: SecKey
+-- "secret"
+secretKey
+  = fromJust $ secKey $ Data.ByteString.Char8.pack
+    "S6Qm57rWK0Ym2p2f1495tmMw16aydWvd"
+
 wuApiRequest :: Network.HTTP.Simple.Request
 wuApiRequest
   = setRequestHost "api.wunderground.com" defaultRequest
@@ -118,33 +128,47 @@ main
   = serve (Just serverConfig) wethereumServer
 
 wethereumServer :: ServerPart Happstack.Lite.Response
+-- INPUT FORMAT: url:8000/timeInsuredFor/latitude/longitude/initialAmount
+-- OUTPUT FORMAT: payout,initialAmount,latitude,longitude,timeInsuredFor,currentTime,hash
 wethereumServer
   = dir "api"
-    $ path $ \(unixTimestamp :: Int) ->
-      path $ \(longitude :: String) ->
+    $ path $ \(timeInsuredFor :: Int) ->
       path $ \(latitude :: String) ->
-      path $ \(value :: Int) ->
+      path $ \(longitude :: String) ->
+      path $ \(initialAmount :: Int) ->
     do
-      payout <- liftIO $ fmap show (calculatePayout unixTimestamp longitude latitude value)
-      ok $ toResponse ("{\"value\": " ++ payout ++ "}" :: String)
+      payout <- liftIO $ fmap show (calculatePayout timeInsuredFor latitude longitude initialAmount)
+      currentTime <- liftIO $ fmap show getPOSIXTime
+      let returnString = getReturnString [payout, show initialAmount, latitude, longitude,
+                          show timeInsuredFor, Prelude.takeWhile isDigit currentTime]
+      ok $ toResponse (returnString  :: String)
+
+getReturnString :: [String] -> String
+getReturnString inputs
+  = withoutHash ++ "," ++ hashString
+  where
+    withoutHash = Data.List.intercalate "," inputs
+    withoutHashBS = fromJust $ msg $ hash $ Data.ByteString.Char8.pack withoutHash
+    hashString = Data.ByteString.Char8.unpack $ exportSig $ signMsg secretKey withoutHashBS
 
 calculatePayout :: Int -> String -> String -> Int -> IO Int
-calculatePayout unixTimestamp longitude latitude value
+calculatePayout unixTimestamp latitude longitude value
   = do
-      prob <- getPrecipProb unixTimestamp longitude latitude
-      return $ round (fromIntegral value - 50000000000000000.0 * 100.0
-        / (100.0 - (9.0 / 10.0 * fromIntegral prob)) :: Float)
+      prob <- getPrecipProb unixTimestamp latitude longitude
+      return $ round ((fromIntegral value - 50000000000000000.0) * 100.0
+        / (100.0 - (0.9 * fromIntegral prob)) :: Float)
 
 getPrecipProb :: Int -> String -> String -> IO Int
-getPrecipProb unixTimestamp longitude latitude
+getPrecipProb unixTimestamp latitude longitude
   = do
-      timeDifference <- fmap (subtract unixTimestamp . round) (liftIO getPOSIXTime)
+      timeDifference <- fmap (flip subtract (unixTimestamp - unixTimestamp `mod` 86400) . round)
+                        (liftIO getPOSIXTime)
       if timeDifference < 10 * 86400
-        then getPredictedPrecipProb unixTimestamp longitude latitude
-        else getAveragePrecipProb unixTimestamp longitude latitude
+        then getPredictedPrecipProb unixTimestamp latitude longitude
+        else getAveragePrecipProb unixTimestamp latitude longitude
 
 getPredictedPrecipProb :: Int -> String -> String -> IO Int
-getPredictedPrecipProb unixTimestamp longitude latitude
+getPredictedPrecipProb unixTimestamp latitude longitude
   = do
       response <- httpLBS $ setRequestPath apiPath wuApiRequest
       let body = getResponseBody response
@@ -153,26 +177,26 @@ getPredictedPrecipProb unixTimestamp longitude latitude
       getThisPrediction unixTimestamp forecastDays
       where
         apiPath = Data.ByteString.Char8.pack ("/api/" ++ wuApiKey
-               ++ "/forecast10day/q/" ++ longitude ++ "," ++ latitude ++ ".json")
+               ++ "/forecast10day/q/" ++ latitude ++ "," ++ longitude ++ ".json")
 
 getThisPrediction :: Int -> [Int] -> IO Int
 getThisPrediction unixTimestamp forecastDays
   = do
-      timeDifference <- fmap (flip subtract unixTimestamp . round) (liftIO getPOSIXTime)
-      print timeDifference
+      timeDifference <- fmap (flip subtract (unixTimestamp - unixTimestamp `mod` 86400) . round)
+                        (liftIO getPOSIXTime)
       return (forecastDays !! (timeDifference `div` 86400))
 
 getAveragePrecipProb :: Int -> String -> String -> IO Int
-getAveragePrecipProb unixTimestamp longitude latitude
+getAveragePrecipProb unixTimestamp latitude longitude
   = do
-    response <- httpLBS $ setRequestPath apiPath wuApiRequest
-    let body = getResponseBody response
-    let plannerJson = fromJust (decode body :: Maybe PlannerResponse)
-    return (read $ percentage (chanceofprecip (chance_of (trip plannerJson))))
-    where
-      apiPath = Data.ByteString.Char8.pack ("/api/" ++ wuApiKey
-             ++ "/planner_" ++ showUnixTimestamp unixTimestamp ++ "/q/"
-             ++ longitude ++ "," ++ latitude ++ ".json")
+      response <- httpLBS $ setRequestPath apiPath wuApiRequest
+      let body = getResponseBody response
+      let plannerJson = fromJust (decode body :: Maybe PlannerResponse)
+      return (read $ percentage (chanceofprecip (chance_of (trip plannerJson))))
+      where
+        apiPath = Data.ByteString.Char8.pack ("/api/" ++ wuApiKey
+               ++ "/planner_" ++ showUnixTimestamp unixTimestamp ++ "/q/"
+               ++ latitude ++ "," ++ longitude ++ ".json")
 
 showUnixTimestamp :: Int -> String
 showUnixTimestamp unixTimestamp
