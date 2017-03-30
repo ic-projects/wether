@@ -60,41 +60,85 @@ contract Weather is usingOraclize {
 	}
 
 
+    function toHash(uint payout,
+		uint initalAmount,
+		string lat,
+		string long,
+		uint date,
+		uint currentTime) constant returns (string) {
+        string memory stringPayout = bytes32ToString(uintToBytes(payout));
+        string memory stringInitalAmount = bytes32ToString(uintToBytes(initalAmount));
+        string memory stringDate = bytes32ToString(uintToBytes(date));
+        string memory stringCurrentTime = bytes32ToString(uintToBytes(currentTime));
 
-	function getPayoutQuote(string lat, string long, uint date, uint amount)
-	constant returns (uint payout) {
+        string memory firstSection = sconcat(
+             stringPayout,
+		 ",",stringInitalAmount,
+		 ",",lat);
+		 string memory secondSection = sconcat(
+		     long,
+		 ",",stringDate,
+		 ",",stringCurrentTime);
+		 return sconcat(firstSection,",",secondSection,"","");
+    }
 
-		//TODO
 
 
-
-
-		return amount * 2;
-	}
-
-	function createInsurance(string lat, string long, uint date) payable {
+	function createInsurance(
+		uint payout,
+		uint initalAmount,
+		string lat,
+		string long,
+		uint date,
+		uint currentTime,
+		bytes signature) payable {
 		if(msg.value < minAmount) {
 			throw;
 		}
 		if(now + (dayInsuranceBuffer * 1 days) >= date) {
+		    Action("Rejected, date too soon", msg.sender);
+			throw;
+		}
+		if(now >= currentTime+ 1 hours ) {
+		    Action("Rejected, quote expired", msg.sender);
+			throw;
+		}
+		if(initalAmount != msg.value) {
+		    Action("Rejected, did not send correct amount", msg.sender);
 			throw;
 		}
 
+        string memory stringHash = toHash(payout,initalAmount,lat,long,date,currentTime);
+		bytes32 checkHash = sha3(stringHash);
 
-		var payout = getPayoutQuote(lat, long, date, msg.value);
+		address returne;
+		bool success;
+		(success, returne) = ecrecovery(checkHash, signature);
+		Hash(stringHash, checkHash, returne, msg.sender);
+
+		//TODO IMPORTANT CHANGE TO NIKS PUBLIC KEY
+		if(returne != 0xF877a551b354A18F689676ef702E7Fcedee56ae3) {
+		    Action("Rejected, hash failed", msg.sender);
+			throw;
+		}
+		//var payout = getPayoutQuote(lat, long, date, msg.value);
 		var i = Insurance(lat, long, payout, date, false, true,
 			0 , false, accounts[msg.sender].insurances.length);
 		accounts[msg.sender].insurances.push(i);
+		Action("Insurance placed!", msg.sender);
 	}
 
 	function payout(uint index) {
 		if (!accounts[msg.sender].insurances[index].exists) {
+		    Action("Payout doesn't exist?!", msg.sender);
 				throw;
 			}
 		if (accounts[msg.sender].insurances[index].claimed) {
+		    Action("Payout already claimed", msg.sender);
 				throw;
 			}
 		if (now <= accounts[msg.sender].insurances[index].date + 1 days) {
+		    Action("Cannot payout, it is not time yet", msg.sender);
 				throw;
 			}
 
@@ -109,7 +153,7 @@ contract Weather is usingOraclize {
 		oracleResults[myid].returned = false;
 
 		accounts[msg.sender].insurances[index].oracleID = myid;
-
+        Action("Payout processing...", msg.sender);
 	}
 
     function dateToString(uint date) constant returns (string) {
@@ -179,13 +223,13 @@ function sconcat(string _a, string _b, string _c, string _d, string _e) internal
 
 	//Owner functions
 
-	function forceCreateInsurance(string lat, string long, uint date) onlyOwner
+	function forceCreateInsurance(string lat, string long,uint payout, uint date) onlyOwner
 	payable {
 		if(msg.value < minAmount) {
 			throw;
 		}
 
-		var payout = getPayoutQuote(lat, long, date, msg.value);
+
 		var i = Insurance(lat, long, payout, date, false, true,
 			0 , false, accounts[msg.sender].insurances.length);
 		accounts[msg.sender].insurances.push(i);
@@ -229,10 +273,14 @@ function sconcat(string _a, string _b, string _c, string _d, string _e) internal
 		uint index = oracleResults[myid].index;
 
 		if (res) {
+		    Action("Payout success (it rained!): sending now", msg.sender);
 			if(!sender.send(accounts[sender].insurances[index].totalPayout)) {
 				accounts[sender].insurances[index].claimed  = false;
-			}
-		}
+				Action("Sending failed, try again", msg.sender);
+		    	}
+		    } else {
+		        Action("Payout denied: It didn't rain m8", msg.sender);
+		    }
 		}
 
 		function stringsEqual(string memory _a, string memory _b) internal returns (bool) {
@@ -247,6 +295,48 @@ function sconcat(string _a, string _b, string _c, string _d, string _e) internal
 		return true;
 	}
 
+	function safer_ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s)
+	internal returns (bool, address) {
+        bool ret;
+        address addr;
+
+        assembly {
+            let size := mload(0x40)
+            mstore(size, hash)
+            mstore(add(size, 32), v)
+            mstore(add(size, 64), r)
+            mstore(add(size, 96), s)
+            ret := call(3000, 1, 0, size, 128, size, 32)
+            addr := mload(size)
+        }
+
+        return (ret, addr);
+    }
+
+    function ecrecovery(bytes32 hash, bytes sig) returns (bool, address) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        if (sig.length != 65)
+          return (false, 0);
 
 
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
+
+        if (v < 27)
+          v += 27;
+
+        if (v != 27 && v != 28)
+            return (false, 0);
+
+        return safer_ecrecover(hash, v, r, s);
+    }
+
+    event Hash(string beforeHash, bytes32 afterHash, address returned, address person);
+    event Action(string message, address person);
 }
