@@ -33,7 +33,7 @@ That floats don't exist in solidity. :(
 Changing the world, fixing everything. Insuring against low and high temperatures?
 
 ## Instructions
-If you've already installed everything:
+If you've already installed everything:  
 wether/WEther `$ meteor`  
 wether/Ethereum `$ testrpc --mnemonic "my test example" --accounts 50`  
 wether/Ethereum/ethereum-bridge `$ node bridge -a 49`  
