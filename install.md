@@ -25,7 +25,7 @@ Once the *essential builds* are installed:
 
 ### Metamask
 Get the Google Chrome 'Metamask' Extension, use the strong Password123456789 after accepting the terms&conditions.  
-We'll use the RPC http://localhost:8545 but more on this after running the different servers.
+We'll use the private network to manage the Smart Contracts.
 
 ## Running
 
