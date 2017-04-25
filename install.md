@@ -2,7 +2,7 @@
 
 # Getting started
 
-##Installation  
+## Installation  
 How to install the required dependencies.
 ### Website  
 Install Meteor for running the website server:  
@@ -14,13 +14,13 @@ For arch Linux:
 `$ pacman -S nodejs npm`  
 For Debian/Ubuntu:  
 `$ curl -sL https://deb.nodesource.com/setup_6.10.2 | sudo -E bash -  
-sudo apt-get install -y nodejs`
+sudo apt-get install -y nodejs`  
 `$ sudo apt-get install -y build-essential`  
 For Fedora:  
 `$ sudo dnf install nodejs`
 
 Once the *essential builds* are installed:  
-`$ npm install -g ethereumjs-testrpc` 
+`$ npm install -g ethereumjs-testrpc`  
 `$ npm install -g truffle`  
 
 ### Metamask
